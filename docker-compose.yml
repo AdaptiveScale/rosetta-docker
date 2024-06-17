@@ -1,0 +1,84 @@
+version: '3'
+
+services:
+  rosetta-app:
+    image: adaptivescale/rosetta-ce
+    container_name: rosetta-app
+    environment:
+      - ACCEPT_EULA=Y
+      - PROEDMS_DB_URL=jdbc:postgresql://rosetta-db:5432/rosetta
+      - PROEDMS_DB_USER=postgres
+      - PROEDMS_DB_PASSWORD=123456
+      - OPENAI_API_KEY=openapikey
+    links:
+      - rosetta-db
+      - mysql
+      - postgres
+      - mssql
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - gateway
+    ports:
+      - '8080:8080'
+    depends_on:
+      - rosetta-db
+
+  rosetta-db:
+    image: postgres:12
+    container_name: rosetta-db
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: rosetta
+    networks:
+      - gateway
+
+  mysql:
+    image: restsql/mysql-sakila
+    ports:
+      - "3306:3306"
+    networks:
+      - gateway
+
+  postgres:
+    image: frantiseks/postgres-sakila
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=sakila
+    networks:
+      - gateway
+
+  mssql:
+    image: fabricioveronez/northwind-database
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=123abcD!
+    networks:
+      - gateway
+
+  cdap:
+    image: caskdata/cdap-sandbox:6.7.2
+    ports:
+      - "11011:11011"
+    networks:
+      - gateway
+
+  cdap-marketplace:
+    image: adaptivescale/cdap-marketplace
+    ports:
+      - "5000:5000"
+    networks:
+      - gateway
+
+  jupyter:
+    image: jupyter/pyspark-notebook:latest
+    ports:
+      - "10000:8888"
+    networks:
+      - gateway
+
+networks:
+  gateway: {}
